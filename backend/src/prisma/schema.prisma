@@ -1,0 +1,53 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:admin@localhost:5432/project_management"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model User {
+  id               Int      @id @default(autoincrement())
+  name             String
+  email            String   @unique
+  password         String
+  roleId           Int
+  role             Role     @relation(fields: [roleId], references: [id])
+
+  // Campo que referencia el ID del administrador
+  administradorId  Int?     // <-- Agregar este campo
+
+  // Relación self-reference
+  administrador    User?    @relation("AdminSubordinates", fields: [administradorId], references: [id])
+  subordinates     User[]   @relation("AdminSubordinates")
+
+  createdProjects  Project[]    @relation("AdminProjects")
+  assignedProjects UserProject[]
+}
+
+
+model Project {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String
+  createdAt       DateTime @default(now())
+  administradorId Int      
+  admin           User     @relation("AdminProjects", fields: [administradorId], references: [id])
+  assignedUsers   UserProject[]
+}
+
+model UserProject {
+  id         Int     @id @default(autoincrement())
+  userId     Int
+  projectId  Int
+  user       User    @relation(fields: [userId], references: [id])
+  project    Project @relation(fields: [projectId], references: [id])
+  @@unique([userId, projectId])
+}

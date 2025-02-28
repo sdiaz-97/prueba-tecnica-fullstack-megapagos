@@ -2,7 +2,7 @@ import { RequestOptions } from "@/interfaces/requests.dto";
 
 const BASE_URL =
   process.env.NODE_ENV === "production"
-    ? "http://ec2-44-203-195-78.compute-1.amazonaws.com:3000"
+    ? "http://ec2-44-220-161-148.compute-1.amazonaws.com:3000"
     : "http://localhost:3000";
 
 

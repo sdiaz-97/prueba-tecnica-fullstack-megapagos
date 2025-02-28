@@ -23,7 +23,9 @@ diferenciando entre administradores y usuarios para el acceso a rutas específic
 
 ### Requisitos previos
 
-- **Docker** y **Docker Compose**  
+Instalar **Docker** y **Docker Compose**
+
+- Este se encuentra disponible en: https://www.docker.com/products/docker-desktop/
 
 ### Pasos para ejecutar la aplicación
 
@@ -32,8 +34,7 @@ diferenciando entre administradores y usuarios para el acceso a rutas específic
    git clone https://github.com/sdiaz-97/prueba-tecnica-fullstack-megapagos.git
    cd prueba-tecnica-fullstack-megapagos
 
-2. **Para ejecutar el docker**  
-
+2. **Iniciar los contenedores**  
     
     **Para windows**
 

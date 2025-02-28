@@ -51,7 +51,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - PORT=${PORT}
-    command: ["sh", "-c", "if [ \"$NODE_ENV\" = \"development\" ]; then npm run dev -- --host; else npm start -- -p $PORT; fi"]
+    command: ["sh", "-c", "if [ \"$NODE_ENV\" = \"development\" ]; then npm run dev -- --port $PORT; else npm start -- -p $PORT; fi"]
 
 volumes:
   postgres_data:

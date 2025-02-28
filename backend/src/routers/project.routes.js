@@ -12,31 +12,30 @@ const routerProyects = Router();
 
 routerProyects.get(
   "/",
-  // authenticateJWT,
-  // authorizeRole("admin", "user"),
+  authenticateJWT,
+  authorizeRole("admin", "user"),
   getProjectsController
 );
 
 routerProyects.post(
   "/",
-  // authenticateJWT,
-  // authorizeRole("admin"),
+  authenticateJWT,
+  authorizeRole("admin"),
   postProjectController
-
 );
 
 routerProyects.put(
   "/",
-  // authenticateJWT,
-  // authorizeRole("admin"),
+  authenticateJWT,
+  authorizeRole("admin"),
   updateProjectController
 
 );
 
 routerProyects.delete(
   "/",
-  // authenticateJWT,
-  // authorizeRole("admin"),
+  authenticateJWT,
+  authorizeRole("admin"),
   deleteProjectController
 
 );

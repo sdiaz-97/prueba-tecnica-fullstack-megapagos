@@ -12,29 +12,27 @@ const routerUsers = Router();
 
 routerUsers.get(
   "/",
-  // authenticateJWT,
-  // authorizeRole("admin"),
+  authenticateJWT,
+  authorizeRole("admin"),
   getUsersController
 );
 
 routerUsers.post(
   "/",
-  // authenticateJWT,
-  // authorizeRole("admin"),
   postUserController
 );
 
 routerUsers.put(
   "/",
-  // authenticateJWT,
-  // authorizeRole("admin"),
+  authenticateJWT,
+  authorizeRole("admin"),
   updateUserController
 );
 
 routerUsers.delete(
   "/",
-  // authenticateJWT,
-  // authorizeRole("admin"),
+  authenticateJWT,
+  authorizeRole("admin"),
   deleteUserController
 );
 

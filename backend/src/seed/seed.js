@@ -5,17 +5,15 @@ const prisma = new PrismaClient();
 const saltRounds = 10;
 
 async function main() {
-  // 1. Crear roles (Administrador, Empleado)
   await prisma.role.createMany({
     data: [
       { name: "Administrador" },
-      { name: "Empleado" },
+      { name: "Usuario" },
     ],
-    skipDuplicates: true,  // Evita error si ya existen
+    skipDuplicates: true,
   });
   console.log("Roles iniciales insertados correctamente.");
 
-  // 2. Verificar si ya existe el usuario administrador
   const adminEmail = "admin@hotmail.com";
   let adminUser = await prisma.user.findUnique({
     where: { email: adminEmail },
@@ -38,7 +36,6 @@ async function main() {
     console.log("El usuario administrador ya existe.");
   }
 
-  // 3. Crear un usuario "normal" asignado al administrador
   const normalUserEmail = "user@hotmail.com";
   let normalUser = await prisma.user.findUnique({
     where: { email: normalUserEmail },
@@ -52,9 +49,8 @@ async function main() {
         email: normalUserEmail,
         password: hashedPassword,
         role: {
-          connect: { name: "Empleado" },
+          connect: { name: "Usuario" },
         },
-        // Asigna el usuario normal al administrador creado
         administrador: {
           connect: { id: adminUser.id },
         },
@@ -65,7 +61,7 @@ async function main() {
     console.log("El usuario normal ya existe.");
   }
 
-  // 4. Crear (o encontrar) un proyecto del administrador
+
   const projectName = "Proyecto de Prueba";
   let project = await prisma.project.findFirst({
     where: { name: projectName },
@@ -76,7 +72,6 @@ async function main() {
       data: {
         name: projectName,
         description: "Este es un proyecto de prueba.",
-        // Conecta al administrador como dueño del proyecto
         admin: {
           connect: { id: adminUser.id },
         },
@@ -87,7 +82,6 @@ async function main() {
     console.log("El proyecto ya existe.");
   }
 
-  // 5. Asignar el usuario normal al proyecto (UserProject)
   const userProjectExists = await prisma.userProject.findUnique({
     where: {
       userId_projectId: {

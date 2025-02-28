@@ -68,7 +68,7 @@ export const postUserService = async ({
         name,
         email,
         password: hashedPassword,
-        role: { connect: { id: roleId } },
+        role: { connect: { name: roleId } },
       };
 
       if (administradorId) {
@@ -87,8 +87,9 @@ export const postUserService = async ({
       });
       response.status = 201;
       response.message = "Usuario Creado!";
+      response.data = { userId: newUser.id }
     } else {
-      response.status = 401;
+      response.status = 200;
       response.message = "Ya existe un usuario con ese correo";
     }
 
@@ -118,7 +119,7 @@ export const updateUserService = async ({
     }
     if (roleId) {
       updateData.role = {
-        connect: { id: roleId },
+        connect: { name: roleId },
       };
     }
     if (password) {
@@ -135,6 +136,7 @@ export const updateUserService = async ({
         email: true,
         role: { select: { id: true, name: true } },
         administrador: { select: { id: true, name: true, email: true } },
+        administradorId: administradorId
       },
     });
 
@@ -151,19 +153,15 @@ export const updateUserService = async ({
 export const deleteUserService = async (id) => {
   try {
     let response = {};
-    // Buscar el usuario por id
     const userExists = await prisma.user.findUnique({
       where: { id: parseInt(id, 10) },
     });
 
-    // Solo se permite eliminar si existe y no es el administrador principal (por ejemplo, si admin tiene un id específico)
     if (userExists && userExists.email !== "admin@hotmail.com") {
-      // Eliminar las asociaciones en la tabla UserProject para este usuario
       await prisma.userProject.deleteMany({
         where: { userId: userExists.id },
       });
 
-      // Luego, eliminar el usuario de la tabla User
       await prisma.user.delete({
         where: { id: userExists.id },
       });

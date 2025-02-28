@@ -1,7 +1,9 @@
 import app from './app.js';
 
-app.listen(app.get('port'), () => {
-    const port = app.get('port');
-    console.log(`Servidor funcionando en: http://localhost:${port}`);
+const PORT = app.get('port');
+
+const server = app.listen(PORT, () => {
+    console.log(`Servidor funcionando en: http://localhost:${PORT}`);
 });
 
+export default server;

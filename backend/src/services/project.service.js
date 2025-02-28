@@ -1,19 +1,29 @@
 import { PrismaClient } from "@prisma/client";
+import { format, subHours } from "date-fns";
 
 const prisma = new PrismaClient();
 
-export const getProjectsService = async ({ page = 1, limit = 10, search = "" }) => {
+export const getProjectsService = async ({ page = 1, limit = 10, search = "", userId, isAdmin }) => {
   try {
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
     const skip = (pageNumber - 1) * pageSize;
 
-    const whereCondition = {
+    let whereCondition = {
       OR: [
         { name: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
       ],
     };
+
+    if (!isAdmin) {
+      whereCondition = {
+        ...whereCondition,
+        assignedUsers: {
+          some: { userId },
+        },
+      };
+    }
 
     const projects = await prisma.project.findMany({
       select: {
@@ -21,19 +31,26 @@ export const getProjectsService = async ({ page = 1, limit = 10, search = "" }) 
         name: true,
         description: true,
         createdAt: true,
-        // Información del administrador (propietario del proyecto)
         admin: { select: { id: true, name: true, email: true } },
-        // Información de los usuarios asignados
-        assignedUsers: {
-          select: {
-            user: { select: { id: true, name: true, email: true } },
-          },
-        },
+        ...(isAdmin
+          ? {
+              assignedUsers: {
+                select: {
+                  user: { select: { id: true, name: true, email: true } },
+                },
+              },
+            }
+          : {}),
       },
       where: whereCondition,
       skip,
       take: pageSize,
     });
+
+    const formattedProjects = projects.map((project) => ({
+      ...project,
+      createdAt: format(subHours(new Date(project.createdAt), 5), "yyyy-MM-dd HH:mm"),
+    }));
 
     const totalProjects = await prisma.project.count({ where: whereCondition });
 
@@ -41,24 +58,29 @@ export const getProjectsService = async ({ page = 1, limit = 10, search = "" }) 
       total: totalProjects,
       page: pageNumber,
       limit: pageSize,
-      projects,
+      projects: formattedProjects,
     };
   } catch (error) {
     throw new Error(`Error al obtener los proyectos: ${error.message}`);
   }
 };
 
-export const postProjectService = async ({ name, description, administradorId }) => {
+
+export const postProjectService = async ({ name, description, userId, assignedUsers }) => {
   try {
     let response = {};
 
-    // Se crea el proyecto y se conecta el administrador mediante el id
     const newProject = await prisma.project.create({
       data: {
         name,
         description,
         admin: {
-          connect: { id: administradorId },
+          connect: { id: userId },
+        },
+        assignedUsers: {
+          create: assignedUsers.map((userId) => ({
+            user: { connect: { id: userId } },
+          })),
         },
       },
       select: {
@@ -67,6 +89,11 @@ export const postProjectService = async ({ name, description, administradorId })
         description: true,
         createdAt: true,
         admin: { select: { id: true, name: true, email: true } },
+        assignedUsers: {
+          select: {
+            user: { select: { id: true, name: true, email: true } },
+          },
+        },
       },
     });
 
@@ -79,7 +106,8 @@ export const postProjectService = async ({ name, description, administradorId })
   }
 };
 
-export const updateProjectService = async ({ id, name, description, administradorId }) => {
+
+export const updateProjectService = async ({ id, name, description, administradorId, assignedUsers }) => {
   try {
     const projectId = parseInt(id, 10);
     const updateData = {};
@@ -94,6 +122,13 @@ export const updateProjectService = async ({ id, name, description, administrado
       updateData.admin = { connect: { id: administradorId } };
     }
 
+    if (Array.isArray(assignedUsers)) {
+      updateData.assignedUsers = {
+        deleteMany: {}, 
+        create: assignedUsers.map(userId => ({ userId })),
+      };
+    }
+
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
       data: updateData,
@@ -103,13 +138,21 @@ export const updateProjectService = async ({ id, name, description, administrado
         description: true,
         createdAt: true,
         admin: { select: { id: true, name: true, email: true } },
+        assignedUsers: {
+          select: {
+            user: { select: { id: true, name: true, email: true } }, 
+          },
+        },
       },
     });
 
     return {
       status: 200,
       message: "Proyecto actualizado correctamente.",
-      data: updatedProject,
+      data: {
+        ...updatedProject,
+        assignedUsers: updatedProject.assignedUsers.map(item => item.user), 
+      },
     };
   } catch (error) {
     throw new Error(`Error al actualizar el proyecto: ${error.message}`);
@@ -121,12 +164,10 @@ export const deleteProjectService = async (id) => {
     let response = {};
     const projectId = parseInt(id, 10);
 
-    // Primero eliminamos las asociaciones en la tabla intermedia (UserProject)
     await prisma.userProject.deleteMany({
       where: { projectId },
     });
 
-    // Luego eliminamos el proyecto
     await prisma.project.delete({
       where: { id: projectId },
     });

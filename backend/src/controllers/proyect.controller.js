@@ -9,7 +9,9 @@ import {
 export const getProjectsController = async (req, res) => {
   try {
     const { page = 1, limit = 10, search = "" } = req.query;
-    const projects = await getProjectsService({ page, limit, search });
+    const userId = req.user.id;
+    const isAdmin = req.user.role === "admin";
+    const projects = await getProjectsService({ page, limit, search, userId, isAdmin });
     res.status(200).json(
       buildResponse(200, "Proyectos consultados correctamente.", projects)
     );
@@ -22,14 +24,17 @@ export const getProjectsController = async (req, res) => {
 
 export const postProjectController = async (req, res) => {
   try {
-    const { name, description, administradorId } = req.body;
+
+    const { name, description, assignedUsers } = req.body;
+    const userId = req.user.id;
     const response = await postProjectService({
       name,
       description,
-      administradorId // Opcional: si se envía, conecta el proyecto con el administrador
+      userId,
+      assignedUsers
     });
     res
-      .status(response.status)
+      .status(200)
       .json(buildResponse(response.status, response.message, response.data));
   } catch (error) {
     res.status(400).json(
@@ -40,16 +45,17 @@ export const postProjectController = async (req, res) => {
 
 export const updateProjectController = async (req, res) => {
   try {
-    const { id } = req.query; // También podrías usar req.params si prefieres
-    const { name, description, administradorId } = req.body;
+    const { id } = req.query;
+    const { name, description, administradorId, assignedUsers } = req.body;
     const response = await updateProjectService({
       id,
       name,
       description,
-      administradorId
+      administradorId,
+      assignedUsers
     });
     res
-      .status(response.status)
+      .status(200)
       .json(buildResponse(response.status, response.message, response.data));
   } catch (error) {
     res.status(400).json(
@@ -60,10 +66,10 @@ export const updateProjectController = async (req, res) => {
 
 export const deleteProjectController = async (req, res) => {
   try {
-    const { id } = req.query; // También podrías usar req.params si lo configuras así en la ruta
+    const { id } = req.query; 
     const response = await deleteProjectService(id);
     res
-      .status(response.status)
+      .status(200)
       .json(buildResponse(response.status, response.message, response.data));
   } catch (error) {
     res.status(400).json(

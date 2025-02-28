@@ -5,6 +5,7 @@ import {
   postUserService,
   updateUserService
 } from "../services/user.service.js";
+import jwt from "jsonwebtoken";
 
 export const getUsersController = async (req, res) => {
   try {
@@ -30,17 +31,27 @@ export const getUsersController = async (req, res) => {
 
 export const postUserController = async (req, res) => {
   try {
-    const { name, email, password, roleId, administradorId } = req.body;
+    let { name, email, password, roleId, administradorId } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+    if (token) {
+      const typeUser = jwt.verify(token, process.env.JWT_SECRET);
+      if (typeUser.role != "admin") {
+        roleId = "Usuario";
+      }
+    } else {
+      roleId = "Usuario";
+    };
     const response = await postUserService({
       name,
       email,
       password,
       roleId,
-      administradorId, 
+      administradorId
     });
+
     res
       .status(response.status)
-      .json(buildResponse(response.status, response.message));
+      .json(buildResponse(response.status, response.message, response));
 
   } catch (error) {
     res
@@ -57,8 +68,9 @@ export const postUserController = async (req, res) => {
 
 export const updateUserController = async (req, res) => {
   try {
-    const { id } = req.query; 
+    const { id } = req.query;
     const { name, email, password, roleId, administradorId } = req.body;
+
     const response = await updateUserService({
       id,
       name,
@@ -69,7 +81,7 @@ export const updateUserController = async (req, res) => {
     });
 
     return res
-      .status(response.status)
+      .status(200)
       .json(buildResponse(response.status, response.message, response.data));
   } catch (error) {
     return res

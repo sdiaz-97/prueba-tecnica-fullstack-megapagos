@@ -30,7 +30,7 @@ diferenciando entre administradores y usuarios para el acceso a rutas específic
 1. **Clonar el repositorio**  
    ```sh
    git clone https://github.com/sdiaz-97/prueba-tecnica-fullstack-megapagos.git
-   cd PruebaRprueba-tecnica-fullstack-megapagosKMC
+   cd prueba-tecnica-fullstack-megapagos
 
 2. **Para ejecutar el docker**  
 

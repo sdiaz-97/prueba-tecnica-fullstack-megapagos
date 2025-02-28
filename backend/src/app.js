@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const corsOptions = {
-  origin: 'http://localhost:8080',
+  origin: allowedOrigin,
   methods: 'GET, PUT, POST, DELETE',
   credentials: true
 };

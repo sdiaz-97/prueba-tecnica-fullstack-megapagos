@@ -12,7 +12,7 @@ app.set('port', PORT);
 
 let allowedOrigin;
 if (process.env.NODE_ENV === 'production') {
-  allowedOrigin = 'ec2-44-203-195-78.compute-1.amazonaws.com';
+  allowedOrigin = 'http://ec2-44-220-161-148.compute-1.amazonaws.com';
 } else {
   allowedOrigin = 'http://localhost:8080';
 }
